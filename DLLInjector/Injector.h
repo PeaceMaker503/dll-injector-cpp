@@ -1,0 +1,16 @@
+#pragma once
+#include <Windows.h>
+
+class Injector
+{
+public:
+	Injector(void);
+	~Injector(void);
+
+	bool Inject(char* procName,char* dllName);
+	bool Inject(DWORD pID,char* dllName);
+
+private:
+	DWORD GetTargetThreadIDFromProcName(const char * ProcName);
+};
+

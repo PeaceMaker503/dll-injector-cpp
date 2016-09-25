@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DLLInjector", "DLLInjector\DLLInjector.vcxproj", "{B43B9EEF-2923-42AC-8A09-49D9E6095390}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExampleDLL", "ExampleDLL\ExampleDLL.vcxproj", "{00949678-2B3F-433F-91F7-30700CD46BB1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B43B9EEF-2923-42AC-8A09-49D9E6095390}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B43B9EEF-2923-42AC-8A09-49D9E6095390}.Debug|Win32.Build.0 = Debug|Win32
+		{B43B9EEF-2923-42AC-8A09-49D9E6095390}.Release|Win32.ActiveCfg = Release|Win32
+		{B43B9EEF-2923-42AC-8A09-49D9E6095390}.Release|Win32.Build.0 = Release|Win32
+		{00949678-2B3F-433F-91F7-30700CD46BB1}.Debug|Win32.ActiveCfg = Debug|Win32
+		{00949678-2B3F-433F-91F7-30700CD46BB1}.Debug|Win32.Build.0 = Debug|Win32
+		{00949678-2B3F-433F-91F7-30700CD46BB1}.Release|Win32.ActiveCfg = Release|Win32
+		{00949678-2B3F-433F-91F7-30700CD46BB1}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
