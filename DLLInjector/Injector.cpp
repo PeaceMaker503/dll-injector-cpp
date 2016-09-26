@@ -4,52 +4,76 @@
 #include <shlwapi.h>
 #include <conio.h>
 #include <stdio.h> 
-
-Injector::Injector(void)
-{
-}
-
-
-Injector::~Injector(void)
-{
-} 
+#include <iostream>
+#include <fstream>
 
 #define CREATE_THREAD_ACCESS (PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION | PROCESS_VM_OPERATION | PROCESS_VM_WRITE | PROCESS_VM_READ) 
 
 bool Injector::Inject(char* procName,char* dllName)
 {
-	DWORD pID = GetTargetThreadIDFromProcName(procName); 
+	DWORD pID = GetPIDFromProcName(procName);
 	return this->Inject(pID, dllName);
 }
 
 bool Injector::Inject(DWORD pID,char* dllName)
 {
-   HANDLE Proc = 0; 
-   HMODULE hLib = 0; 
-   char buf[50] = {0}; 
-   LPVOID RemoteString, LoadLibAddy; 
+	if (!pID) {
+		std::cout << "Invalid process id." << std::endl;
+		return false;
+   }
 
-   if(!pID) 
-      return false; 
+	if (!std::ifstream(dllName).good()) {
+		std::cout << "Dll does not exist." << std::endl;
+		return false;
+   }
 
-   Proc = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pID); 
-   if(!Proc) 
+   HANDLE proc = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pID);
+
+   if(!proc)
    { 
-      snprintf(buf, sizeof(buf), "OpenProcess() failed: %d", GetLastError()); 
-      MessageBox(NULL, buf, "Loader", MB_OK); 
-      printf(buf); 
+	  std::cout << "OpenProcess() failed: " << GetLastError() << std::endl;
       return false; 
    } 
-    
-   LoadLibAddy = (LPVOID)GetProcAddress(GetModuleHandle("kernel32.dll"), "LoadLibraryA"); 
-   RemoteString = (LPVOID)VirtualAllocEx(Proc, NULL, strlen(dllName), MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
-   WriteProcessMemory(Proc, (LPVOID)RemoteString, dllName, strlen(dllName), NULL);
-   CreateRemoteThread(Proc, NULL, NULL, (LPTHREAD_START_ROUTINE)LoadLibAddy, (LPVOID)RemoteString, NULL, NULL); 
-   CloseHandle(Proc); 
-   return true; 
+
+   LPVOID LoadLibAddy = (LPVOID)GetProcAddress(GetModuleHandle("kernel32.dll"), "LoadLibraryA"); 
+
+   if (!LoadLibAddy) {
+	   std::cout << "GetProcAddress() failed: " << GetLastError() << std::endl;
+	   return false;
+   }
+
+	LPVOID RemoteString = (LPVOID)VirtualAllocEx(proc, NULL, strlen(dllName), MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+
+	if (!RemoteString) {
+		std::cout << "VirtualAllocEx() failed: " << GetLastError() << std::endl;
+		return false;
+	}
+
+	BOOL writeStatus = WriteProcessMemory(proc, (LPVOID)RemoteString, dllName, strlen(dllName), NULL);
+
+	if (!writeStatus) {
+		std::cout << "WriteProcessMemory() failed: " << GetLastError() << std::endl;
+		return false;
+	}
+
+	HANDLE thread = CreateRemoteThread(proc, NULL, NULL, (LPTHREAD_START_ROUTINE)LoadLibAddy, (LPVOID)RemoteString, NULL, NULL);
+
+	if (!thread) {
+		std::cout << "CreateRemoteThread() failed: " << GetLastError() << std::endl;
+		return false;
+	}
+
+	BOOL closeStatus = CloseHandle(proc);
+
+	if (!closeStatus) {
+		std::cout << "CloseHandle() failed: " << GetLastError() << std::endl;
+		return false;
+	}
+
+	return true;
 }
 
-DWORD Injector::GetTargetThreadIDFromProcName(const char * ProcName)
+DWORD Injector::GetPIDFromProcName(const char * ProcName)
 {
 	PROCESSENTRY32 pe;
 	HANDLE thSnapShot;
@@ -58,7 +82,7 @@ DWORD Injector::GetTargetThreadIDFromProcName(const char * ProcName)
 	thSnapShot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 	if(thSnapShot == INVALID_HANDLE_VALUE)
 	{
-		printf("Error: Unable to create toolhelp snapshot!");
+		std::cout << "Error: Unable to create toolhelp snapshot!" << GetLastError() << std::endl;
 		return false;
 	}
  
@@ -73,6 +97,7 @@ DWORD Injector::GetTargetThreadIDFromProcName(const char * ProcName)
 		}
 		retval = Process32Next(thSnapShot, &pe);
 	}
-	return 0;
+
+	return 0; //no process found
 }
 
